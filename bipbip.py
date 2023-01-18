@@ -1,6 +1,8 @@
 from bitstring import BitArray
 import bitstring
 
+# allow indexing of the bitarrays from right to left
+# i.e. least significant bit is at index 0
 bitstring.lsb0 = True
 
 # permutations
@@ -8,6 +10,8 @@ P_1 = [1, 7, 6, 0, 2, 8, 12, 18, 19, 13, 14, 20, 21, 15, 16, 22, 23, 17, 9, 3, 4
 P_2 = [0, 1, 4, 5, 8, 9, 2, 3, 6, 7, 10, 11, 16, 12, 13, 17, 20, 21, 15, 14, 18, 19, 22, 23]
 P_3 = [16, 22, 11, 5, 2, 8, 0, 6, 19, 13, 12, 18, 14, 15, 1, 7, 21, 20, 4, 3, 17, 23, 10, 9]
 
+# substitution box formulaic implementation
+# could also be done via a lookup table
 def BipBipBox(x5, x4, x3, x2, x1, x0):
     x5 = int(x5)
     x4 = int(x4)
@@ -126,7 +130,10 @@ def G(a):
 def G_prime(a):
     return chi(pi_5(theta_prime(pi_4(a))))
 
+# implementation of BipBip_(x, y, z) with BipBip_(3, 5, 3)
+# x=3 shell rounds, y=5 core rounds, and z=3 more shell rounds
 def bipbip(T_star, C, k0, tweak_round_keys):
+    # three R' rounds
     R_value = R_prime(C ^ k0)
     
     T_value = chi(T_star ^ tweak_round_keys[1])
@@ -136,6 +143,7 @@ def bipbip(T_star, C, k0, tweak_round_keys):
     
     T_value = G(T_value ^ tweak_round_keys[2])
     
+    # five R rounds
     R_value = R(R_value ^ E_0(T_value))
     R_value = R(R_value ^ E_1(T_value))
     
@@ -154,6 +162,7 @@ def bipbip(T_star, C, k0, tweak_round_keys):
     
     T_value = G(T_value ^ tweak_round_keys[5])
     
+    # three R' rounds
     R_value = R_prime(R_value ^ E_0(T_value))
     
     T_value = G_prime(T_value)
@@ -184,10 +193,12 @@ def main():
             K.bin[(53 * i + x) % 256] for x in range(53)
         ])))
         
-    # random tweak for now
+    # random tweak; normally derived from 24 bits of an address
     T = BitArray('0b0000101101110101100110101101111000111111')
     T_star = BitArray(T)
     T_star.append('0b1000000000000')
+    
+    # arbitrary ciphertext
     C = BitArray('0b011010010101001001010100')
     
     print(C.bin)
