@@ -19,18 +19,16 @@ sbox = {}
 inverse_sbox = {}
 for i in range(len(Table_1)):
     sbox[BitArray('0b' + bin(i)[2:].zfill(6)).bin] = BitArray('0x' + Table_1[i]).bin[2:]
-    
+
+# create inverted table for encryption
 for key, entry in sbox.items():
     inverse_sbox[entry] = key
-  
-def BipBipBox(x5, x4, x3, x2, x1, x0):
-    return BitArray('0b' + sbox[''.join(map(str, [int(x5), int(x4), int(x3), int(x2), int(x1), int(x0)]))])
-
-def BipBipBox_inverse(x5, x4, x3, x2, x1, x0):
-    return BitArray('0b' + inverse_sbox[''.join(map(str, [int(x5), int(x4), int(x3), int(x2), int(x1), int(x0)]))])
     
 # would be done in parallel in hardware
 # S-box layer
+def BipBipBox(x5, x4, x3, x2, x1, x0):
+    return BitArray('0b' + sbox[''.join(map(str, [int(x5), int(x4), int(x3), int(x2), int(x1), int(x0)]))])
+
 def SBoxAll(x):
     y = BitArray(length=24)
     for i in range(4):
@@ -113,6 +111,9 @@ def R_prime(x):
 # inverses to implement the encryption component
 
 # S-box layer
+def BipBipBox_inverse(x5, x4, x3, x2, x1, x0):
+    return BitArray('0b' + inverse_sbox[''.join(map(str, [int(x5), int(x4), int(x3), int(x2), int(x1), int(x0)]))])
+
 def SBoxAll_inverse(x):
     y = BitArray(length=24)
     for i in range(4):
@@ -258,6 +259,7 @@ def bipbip_dec(T_star, C, k0, tweak_round_keys):
     
 def main():
     
+    # read 256 bit hexadecimal key from file and convert to binary
     key_hex_values = open('key.txt').read().split()
     key_binary_values = [ bin(int(x, 16))[2:].zfill(8) for x in key_hex_values]
 
@@ -277,6 +279,8 @@ def main():
         
     # random tweak; normally derived from 24 bits of an address
     T = BitArray('0b0000101101110101100110101101111000111111')
+    
+    # extend the tweak to a length of 53 bits
     T_star = BitArray(T)
     T_star.append('0b1000000000000')
     
