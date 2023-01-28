@@ -148,8 +148,8 @@ def pi_3_inverse(x):
 # mixing layer
 def theta_d_inverse(x):
     y = BitArray(x)
-    for i in range(11):
-        y = theta_d(y)
+    for i in range(24):
+        y[i] = x[(i + 8) % 24] ^ x[(i + 20) % 24] ^ x[(i + 22) % 24]
     return y
 
 # datapath rounds
@@ -277,7 +277,7 @@ def main():
             K.bin[(53 * i + x) % 256] for x in range(53)
         ])))
         
-    # random tweak; normally derived from 24 bits of an address
+    # random tweak; normally derived from the other 40 bits
     T = BitArray('0b0000101101110101100110101101111000111111')
     
     # extend the tweak to a length of 53 bits
