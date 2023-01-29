@@ -1,5 +1,14 @@
-from bitstring import BitArray
 import bitstring
+import argparse
+
+from bitstring import BitArray
+
+parser = argparse.ArgumentParser(
+    prog = 'bipbip',
+    description='BipBip encryption algorithm'
+)
+parser.add_argument('-a', '--address', type=str, help='64 bit address to encrypt', required=True)
+args = parser.parse_args()
 
 # allow indexing of the bitarrays from right to left
 # i.e. least significant bit is at index 0
@@ -276,16 +285,20 @@ def main():
         tweak_round_keys[i] = BitArray('0b' + ''.join(map(str, [
             K.bin[(53 * i + x) % 256] for x in range(53)
         ])))
-        
-    # random tweak; normally derived from the other 40 bits
-    T = BitArray('0b0000101101110101100110101101111000111111')
+    
+    address = BitArray('0b' + args.address)
+    
+    # tweak derived from 40 bits of the address
+    T = BitArray('0b' + address.bin[:6] + address.bin[30:])
+
+    # plaintext derived from 28 bits of the address
+    P = BitArray('0b' + address.bin[6:30])
     
     # extend the tweak to a length of 53 bits
     T_star = BitArray(T)
     T_star.append('0b1000000000000')
     
-    # arbitrary plaintext
-    P = BitArray('0b011010010101001001010100')
+    print("Tweak: " + T.bin + "\n")
     
     print("Plaintext:  " + P.bin)
     C = bipbip_enc(T_star, P, k0, tweak_round_keys)  
